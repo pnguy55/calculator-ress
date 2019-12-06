@@ -256,7 +256,9 @@ class App extends Component {
                 currentExpressionArray.splice(0,1);
                 let currentExpressionJoined = currentExpressionArray.join('');
     
-                
+                if(firstOperator === ')') {
+                    firstOperator = '+'
+                }
                 this.setState({
                     wholeEquation: this.state.wholeEquation.concat(`${firstOperator}(${currentExpressionJoined})`),
                     currentExpression: `(${result})`,

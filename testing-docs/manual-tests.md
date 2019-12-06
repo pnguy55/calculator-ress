@@ -20,3 +20,5 @@ discovered bug where an opening parentheses cannot be used --> will add a check 
 opening parentheses feature added
 
 discovered bug where opening negative numbers and negative numbers in the middle of an expression don't work --> added feature for negative numbers
+
+discovered bug with (-1)-3 causes a parenthesis error and added a case to catch it
