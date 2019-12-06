@@ -12,9 +12,15 @@ const HistoryScreen = (props) => {
                     alignItems: 'center',
                     fontSize: '6vh',
                     whiteSpace: 'nowrap',
-                    overflow: 'scroll',
-                    }}
-             onClick = {() => {props.historyScreenPressHandler()}}>
+                    overflow: 'hidden',
+                }}
+             onClick = {() => { 
+                            if (props.historyScreenIndex > 1) {
+                                props.historyScreenPressHandler(); 
+                             } else {
+                               console.log('No History Yet') 
+                            } 
+                       }}>
         {props.displayHistoryEquation} = {props.resultFromHistory}
         
 

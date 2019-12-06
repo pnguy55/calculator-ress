@@ -273,7 +273,7 @@ class App extends Component {
 
                             <div className='row container' style={{width: '100%',height: '10vh',marginTop: '0px', marginBottom: '0px'}}>
                                 <HistoryButton delta='-1' operation='prev' style={{fontSize: '2vh'}} historyViewIndex = {this.state.historyViewIndex} historyViewIndexChangeHandler = {this.historyViewChange}/>
-                                <HistoryScreen style={{margin: '0px'}} historyScreenPressHandler = {this.historyScreenPress} displayHistoryEquation = {this.state.resultArray[this.state.historyViewIndex].equation} resultFromHistory = {this.state.resultArray[this.state.historyViewIndex].result}/>
+                                <HistoryScreen style={{margin: '0px'}} historyScreenIndex={this.state.resultArray.length} historyScreenPressHandler = {this.historyScreenPress} displayHistoryEquation = {this.state.resultArray[this.state.historyViewIndex].equation} resultFromHistory = {this.state.resultArray[this.state.historyViewIndex].result}/>
                                 <HistoryButton delta='1' operation='next' style={{fontSize: '2vh'}} historyViewIndex = {this.state.historyViewIndex} historyViewIndexChangeHandler = {this.historyViewChange}/>
                             </div>
                             <ButtonPad style={{margin: '0px'}}>
