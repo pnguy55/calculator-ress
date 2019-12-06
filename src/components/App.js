@@ -6,7 +6,8 @@ import React, { Component } from 'react';
 
 import CalculatorBody from './CalculatorBody';
 import MainScreen from './MainScreen';
-import HistoryScreen from './HistoryScreen'
+import HistoryScreen from './HistoryScreen';
+import HistoryButton from './HistoryButton';
 import NumberButton from './NumberButton';
 import OperationButton from './OperationButton';
 import ButtonPad from './ButtonPad';
@@ -22,12 +23,46 @@ class App extends Component {
         this.state = { wholeEquation: [''], 
                        currentExpression: '', 
                        lastInput: '', 
-                       lastResult: ''};
+                       lastResult: '',
+                       resultArray: [{
+                        equation: '',
+                        result: ''                           
+                        }],
+                       displayHistoryEquation: {
+                           equation: '',
+                           result: ''                           
+                       },
+                       historyIndex: 0,
+                       historyViewIndex: 0
+                    };
         this.numberPress = this.numberPress.bind(this);
         this.equalsPress = this.equalsPress.bind(this);
         this.lastInputSetter = this.lastInputSetter.bind(this);
+        this.historyViewChange = this.historyViewChange.bind(this);
+        this.historyScreenPress = this.historyScreenPress.bind(this);
     }
 
+    historyViewChange(delta) {
+        let newHistoryIndex = this.state.historyViewIndex;
+        let historyLength = this.state.resultArray.length;
+        if (delta === 'prev') {
+            newHistoryIndex < historyLength ? (newHistoryIndex = parseInt(this.state.historyViewIndex) - 1) : console.log("end of history");
+        } else {
+            newHistoryIndex > 0 ? (newHistoryIndex = parseInt(this.state.historyViewIndex) + 1) : console.log("end of history");
+        }
+        
+        console.log(newHistoryIndex)
+        if ( newHistoryIndex > 0 && newHistoryIndex < this.state.resultArray.length) {
+            this.setState({
+                historyViewIndex: newHistoryIndex
+            }, () => {
+ 
+            })
+        }
+        else {
+            console.log('end of history')
+        }
+    }
 
     lastInputSetter(lastInput) {
         // console.log(`lastInputFromSetter: ${lastInput}`)
@@ -36,6 +71,21 @@ class App extends Component {
         }, () => {
             this.setState({
 
+            })
+        })
+    }
+
+    historyScreenPress(){
+        this.setState({
+                lastResult: `(${this.state.resultArray[parseInt(this.state.historyViewIndex)].result})`,
+                lastInput: ')',
+                currentExpression: `${this.state.resultArray[parseInt(this.state.historyViewIndex)].result}`,
+                wholeEquation: `${[this.state.resultArray[parseInt(this.state.historyViewIndex)].equation].join('')}`,
+                historyViewIndex: this.state.resultArray.length - 1,
+        }, () => {
+            this.setState({
+                resultArray: [...this.state.resultArray, { equation: this.state.wholeEquation, result: safeEval(this.state.wholeEquation) }],
+                historyIndex: this.state.historyIndex + 1
             })
         })
     }
@@ -102,6 +152,14 @@ class App extends Component {
         let currentExpressionParenCheck = currentExpressionFromProps.split('')
         let countParensLeft = 0;
         let countParensRight = 0;
+
+        // if (currentExpressionParenCheck[0] && currentExpressionParenCheck[1] && currentExpressionParenCheck[currentExpressionParenCheck-1] && currentExpressionParenCheck[-2]) {
+        //     console.log('hi')
+        //     currentExpressionParenCheck.pop();
+        //     currentExpressionParenCheck.shift();
+        //     currentExpressionFromProps = currentExpressionParenCheck.join();
+        // }
+
         for(let i=0; i < currentExpressionParenCheck.length; i++) {
             if (currentExpressionParenCheck[i] === '(') {
                 countParensLeft++;
@@ -110,14 +168,14 @@ class App extends Component {
                 countParensRight++;
             }
         }
-
         if (countParensLeft !== countParensRight) {
             this.setState({
                 currentExpression: "Invalid operation, did not close expression, please press 'AC'",
                             lastInput: '',
-                            wholeEquation: ['']
+                            wholeEquation: [''],
+
             })
-        } 
+        }   
         else {
             let result = parseFloat(safeEval(currentExpressionFromProps).toFixed(4)).toString();
 
@@ -128,11 +186,23 @@ class App extends Component {
                     lastInput: ')',
                     lastResult: `(${result})`
                 }, () => {
-                    if(this.state.lastResult === "(Infinity)" || this.state.lastResult === "(NaN") {
+
+                    if (this.state.lastResult === "(Infinity)" || this.state.lastResult === "(NaN") {
                         this.setState({
                             currentExpression: "Invalid operation, please press 'AC'",
                             lastInput: '',
                             wholeEquation: ['']
+                        })
+                    } 
+                    else {
+
+                        this.setState({
+                            resultArray: [...this.state.resultArray, { equation: this.state.wholeEquation.join(''), result: this.state.lastResult }],
+                            historyIndex: this.state.historyIndex + 1
+                        }, () => {
+                            this.setState({
+                                historyViewIndex: this.state.historyIndex
+                            })
                         })
                     }
                 });
@@ -141,8 +211,10 @@ class App extends Component {
     
                 let takeOffFirstNumber = currentExpressionFromProps.split(/(?=[-+/*()])/);
                 takeOffFirstNumber.splice(0,2);
-    
-                let firstOperator = takeOffFirstNumber[0].split('').shift();
+                
+                // console.log(takeOffFirstNumber[0])
+                let firstOperator = takeOffFirstNumber[0].split('');
+                firstOperator = firstOperator.shift();
                 
                 let currentExpressionArray = takeOffFirstNumber.join('').split('');
                 currentExpressionArray.splice(0,1);
@@ -162,6 +234,16 @@ class App extends Component {
                             wholeEquation: ['']
                         })
                     }
+                    else (
+                        this.setState({
+                            resultArray: [...this.state.resultArray, { equation: this.state.wholeEquation, result: this.state.lastResult }],
+                            historyIndex: this.state.historyIndex + 1
+                        }, () => {
+                            this.setState({
+                                historyViewIndex: this.state.historyIndex-1
+                            })
+                        })
+                    )
                 });
             }
         }
@@ -190,9 +272,9 @@ class App extends Component {
                                         currentExpression={this.state.currentExpression}/>
 
                             <div className='row container' style={{width: '100%',height: '10vh',marginTop: '0px', marginBottom: '0px'}}>
-                                <OperationButton operation='prev' style={{fontSize: '2vh'}}/>
-                                <HistoryScreen style={{margin: '0px'}}/>
-                                <OperationButton operation='next' style={{fontSize: '2vh'}}/>
+                                <HistoryButton delta='-1' operation='prev' style={{fontSize: '2vh'}} historyViewIndex = {this.state.historyViewIndex} historyViewIndexChangeHandler = {this.historyViewChange}/>
+                                <HistoryScreen style={{margin: '0px'}} historyScreenPressHandler = {this.historyScreenPress} displayHistoryEquation = {this.state.resultArray[this.state.historyViewIndex].equation} resultFromHistory = {this.state.resultArray[this.state.historyViewIndex].result}/>
+                                <HistoryButton delta='1' operation='next' style={{fontSize: '2vh'}} historyViewIndex = {this.state.historyViewIndex} historyViewIndexChangeHandler = {this.historyViewChange}/>
                             </div>
                             <ButtonPad style={{margin: '0px'}}>
                                 <div className='row' style={{height: '20%', margin: '0px'}}>
