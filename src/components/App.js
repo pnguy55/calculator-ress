@@ -40,6 +40,7 @@ class App extends Component {
         this.lastInputSetter = this.lastInputSetter.bind(this);
         this.historyViewChange = this.historyViewChange.bind(this);
         this.historyScreenPress = this.historyScreenPress.bind(this);
+        console.log(this.state)
     }
 
     historyViewChange(delta) {
@@ -112,7 +113,7 @@ class App extends Component {
                 lastInput: ')'
             })
         }
-        else if (this.state.lastInput === ')' && (input>=0 && input<=9)) {
+        else if (this.state.lastInput === ')' && input>=0 && input<=9) {
             let multiplyParenthesis = '*'+input
             this.setState({
                 currentExpression: this.state.currentExpression.concat(multiplyParenthesis),
@@ -127,6 +128,29 @@ class App extends Component {
             }, () => {
             });
         }
+        else if (input === '-' && this.state.lastInput === '') {
+            this.setState({
+                currentExpression: this.state.currentExpression.concat(input),
+                lastInput: input
+            }, () => {
+            });
+        }
+        else if (input === '-' && this.state.lastInput === '(') {
+            console.log('hi')
+                let negativeParenthesis = input
+                this.setState({
+                    currentExpression: this.state.currentExpression.concat(negativeParenthesis),
+                    lastInput: input
+                }, () => {
+                });
+        }
+        else if (input === '(' && (this.state.lastInput === '-' || this.state.lastInput === '+' || this.state.lastInput === '-' || this.state.lastInput === '/') ) {
+            this.setState({
+                currentExpression: this.state.currentExpression.concat(input),
+                lastInput: input
+            }, () => {
+            });
+        }
         else if (input === '(' && ((this.state.lastInput>=0 && this.state.lastInput<=9) || this.state.lastInput===')' || this.state.lastInput)) {
             let multiplyParenthesis = '*'+input
             this.setState({
@@ -135,8 +159,20 @@ class App extends Component {
             }, () => {
             });
         }   
+        else if (input === '(' && isNaN(this.state.lastInput)) {
+            this.setState({
+                currentExpression: this.state.currentExpression.concat(input),
+                lastInput: input
+            }, () => {
+            });
+        }
         else if (input === '-' && this.state.lastInput === '-') {
-
+            let negativeParenthesis = '('+input;
+            this.setState({
+                currentExpression: this.state.currentExpression.concat(negativeParenthesis),
+                lastInput: input
+            }, () => {
+            });
         }
         else {
             this.setState({

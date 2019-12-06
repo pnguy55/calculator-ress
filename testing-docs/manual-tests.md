@@ -17,3 +17,6 @@ discovered bug where closing parenthesis can be used without an opening
 fixed the bug by adding a flag to check whether there is already an opening parentheses to match this one
 
 discovered bug where an opening parentheses cannot be used --> will add a check for '('
+opening parentheses feature added
+
+discovered bug where opening negative numbers and negative numbers in the middle of an expression don't work --> added feature for negative numbers

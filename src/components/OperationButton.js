@@ -15,6 +15,12 @@ class OperationButton extends React.Component {
         if (lastInput === undefined && operator==="(") {
             return true;
         }
+        if (isNaN(lastInput) && operator==="(") {
+            return true;
+        }
+        if (isNaN(lastInput) &&  operator==="-") {
+            return true;
+        }
         if (operator === 'AC' || operator === 'C') {
             return true;
         }
