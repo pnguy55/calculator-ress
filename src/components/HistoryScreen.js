@@ -12,7 +12,8 @@ const HistoryScreen = (props) => {
                     alignItems: 'center',
                     fontSize: '6vh',
                     whiteSpace: 'nowrap',
-                    overflow: 'hidden',}}
+                    overflow: 'scroll',
+                    }}
              onClick = {() => {props.historyScreenPressHandler()}}>
         {props.displayHistoryEquation} = {props.resultFromHistory}
         
