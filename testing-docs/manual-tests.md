@@ -1,0 +1,19 @@
+Test history:
+
+Checked with plain numbers --> works
+
+Checked with parentheses --> did not work
+Added checks for parentheses with proper handling --> still needs to work with parentheses on parenthesis multipication
+
+Added that functionality --> now works with parentheses
+
+make sure you cannot use two operations back to back, other than adding parentheses
+
+added checks for double operations to prevent that behavior, discovered double decimal bug
+fixed by checking the latest number added (not last input)
+
+discovered bug where closing parenthesis can be used without an opening
+
+fixed the bug by adding a flag to check whether there is already an opening parentheses to match this one
+
+discovered bug where an opening parentheses cannot be used --> will add a check for '('
