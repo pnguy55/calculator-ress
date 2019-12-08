@@ -40,6 +40,9 @@ class App extends Component {
         this.lastInputSetter = this.lastInputSetter.bind(this);
         this.historyViewChange = this.historyViewChange.bind(this);
         this.historyScreenPress = this.historyScreenPress.bind(this);
+    }
+
+    componentDidUpdate(){
         console.log(this.state)
     }
 
@@ -81,11 +84,12 @@ class App extends Component {
                 lastResult: `(${this.state.resultArray[parseInt(this.state.historyViewIndex)].result})`,
                 lastInput: ')',
                 currentExpression: `${this.state.resultArray[parseInt(this.state.historyViewIndex)].result}`,
-                wholeEquation: `${[this.state.resultArray[parseInt(this.state.historyViewIndex)].equation].join('')}`,
+                wholeEquation: [this.state.resultArray[parseInt(this.state.historyViewIndex)].equation],
                 historyViewIndex: this.state.resultArray.length - 1,
         }, () => {
+            console.log(this.state.wholeEquation.join('').replace(/,/g,''))
             this.setState({
-                resultArray: [...this.state.resultArray, { equation: this.state.wholeEquation, result: safeEval(this.state.wholeEquation) }],
+                resultArray: [...this.state.resultArray, { equation: this.state.wholeEquation, result: parseFloat(safeEval(this.state.wholeEquation.join('').replace(/,/g,'')).toFixed(4).toString()) }],
                 historyIndex: this.state.historyIndex + 1
             })
         })
@@ -213,14 +217,14 @@ class App extends Component {
             })
         }   
         else {
-            let result = parseFloat(safeEval(currentExpressionFromProps).toFixed(4)).toString();
+            let result = parseFloat(safeEval(currentExpressionFromProps.replace(/,/g,'')).toFixed(4)).toString();
 
             if (this.state.wholeEquation.length === 1) {
                 this.setState({
                     wholeEquation: this.state.wholeEquation.concat(`(${currentExpressionFromProps})`),
                     currentExpression: `(${result})`,
                     lastInput: ')',
-                    lastResult: `(${result})`
+                    lastResult: `${result}`
                 }, () => {
 
                     if (this.state.lastResult === "(Infinity)" || this.state.lastResult === "(NaN") {
@@ -248,7 +252,7 @@ class App extends Component {
                 let takeOffFirstNumber = currentExpressionFromProps.split(/(?=[-+/*()])/);
                 takeOffFirstNumber.splice(0,2);
                 
-                // console.log(takeOffFirstNumber[0])
+                console.log('firstNumber: '+ takeOffFirstNumber[0], 'WholeExpression: ' + takeOffFirstNumber)
                 let firstOperator = takeOffFirstNumber[0].split('');
                 firstOperator = firstOperator.shift();
                 
@@ -263,7 +267,7 @@ class App extends Component {
                     wholeEquation: this.state.wholeEquation.concat(`${firstOperator}(${currentExpressionJoined})`),
                     currentExpression: `(${result})`,
                     lastInput: ')',
-                    lastResult: `(${result})`
+                    lastResult: `${result}`
                 }, () => {
                     if(this.state.lastResult === "(Infinity)" || this.state.lastResult === "(NaN") {
                         this.setState({
