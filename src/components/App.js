@@ -80,16 +80,19 @@ class App extends Component {
     }
 
     historyScreenPress(){
+
+        let equationFromHistory = this.state.resultArray[parseInt(this.state.historyViewIndex)].equation;
+
         this.setState({
                 lastResult: `(${this.state.resultArray[parseInt(this.state.historyViewIndex)].result})`,
                 lastInput: ')',
                 currentExpression: `${this.state.resultArray[parseInt(this.state.historyViewIndex)].result}`,
-                wholeEquation: [this.state.resultArray[parseInt(this.state.historyViewIndex)].equation],
+                wholeEquation: [''],
                 historyViewIndex: this.state.resultArray.length - 1,
         }, () => {
-            console.log(this.state.wholeEquation.join('').replace(/,/g,''))
+
             this.setState({
-                resultArray: [...this.state.resultArray, { equation: this.state.wholeEquation, result: parseFloat(safeEval(this.state.wholeEquation.join('').replace(/,/g,'')).toFixed(4).toString()) }],
+                resultArray: [...this.state.resultArray, { equation: equationFromHistory, result: parseFloat(safeEval(equationFromHistory.toString().replace(/,/g,'')).toFixed(4).toString()) }],
                 historyIndex: this.state.historyIndex + 1
             })
         })
@@ -113,7 +116,7 @@ class App extends Component {
         else if (input === 'C' && this.state.wholeEquation.length > 1) {
             // console.log(this.state.lastResult)
             this.setState({
-                currentExpression: `(${this.state.lastResult.split(/[()]/)[1]})`,
+                currentExpression: `(${this.state.lastResult})`,
                 lastInput: ')'
             })
         }
@@ -178,7 +181,7 @@ class App extends Component {
             }, () => {
             });
         }
-        else {
+        else if (input !== '=') {
             this.setState({
                 currentExpression: this.state.currentExpression.concat(input),
                 lastInput: input
@@ -250,6 +253,7 @@ class App extends Component {
             else {
     
                 let takeOffFirstNumber = currentExpressionFromProps.split(/(?=[-+/*()])/);
+                console.log('pre-splice' + takeOffFirstNumber);
                 takeOffFirstNumber.splice(0,2);
                 
                 console.log('firstNumber: '+ takeOffFirstNumber[0], 'WholeExpression: ' + takeOffFirstNumber)
