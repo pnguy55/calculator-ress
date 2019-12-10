@@ -10,8 +10,6 @@ class NumberButton extends React.Component {
     lastInputGetter(currentExpression){
         let currentCopy = currentExpression.split('');
         let lastInput = currentCopy.pop();
-        // console.log(`lastInputFromNumberPress: ${lastInput}`)
-        this.props.lastInputHandler(lastInput);
     };
 
     render(){

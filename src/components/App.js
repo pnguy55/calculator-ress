@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-
+import { AxiosProvider, Request, Get, Delete, Head, Post, Put, Patch, withAxios } from 'react-axios'
 // import { BrowserRouter, Route } from 'react-router-dom';
 // import { connect } from 'react-redux';
 // import * as actions from '../actions';
@@ -12,7 +12,8 @@ import NumberButton from './NumberButton';
 import OperationButton from './OperationButton';
 import ButtonPad from './ButtonPad';
 
-var safeEval = require('safe-eval')
+var axios = require('axios');
+var safeEval = require('safe-eval');
 
 
 class App extends Component {
@@ -33,30 +34,79 @@ class App extends Component {
                            result: ''                           
                        },
                        historyIndex: 0,
-                       historyViewIndex: 0
+                       historyViewIndex: 1,
+                       historyLength: 0,
+                       pgArray: [{
+                           equation: '',
+                           result: ''
+                       }]
                     };
         this.numberPress = this.numberPress.bind(this);
         this.equalsPress = this.equalsPress.bind(this);
-        this.lastInputSetter = this.lastInputSetter.bind(this);
         this.historyViewChange = this.historyViewChange.bind(this);
         this.historyScreenPress = this.historyScreenPress.bind(this);
     }
+    // Update state on startup - Start
+    componentDidMount() {
+        const set_pgArray_from_spring = (response) => {
+            this.setState({
+                pgArray: response.data
+            })
+        }
+        const set_historyLength_from_spring = (response) => {
+            this.setState({
+                historyLength: response.data,
+                historyViewIndex: response.data
+            })
+        }
+        // Make a request for equation
+        axios.get('https://calc-spring.herokuapp.com/postgres/equation/all', 
+                    {
+                        headers: {'Access-Control-Allow-Origin': '*'}
+                    })
+        .then(function (response) {
+        // handle success
+            set_pgArray_from_spring(response);
+            
+            // nested ajax for historyLength
+            axios.get('https://calc-spring.herokuapp.com/postgres/equation/count', 
+                        {
+                            headers: {'Access-Control-Allow-Origin': '*'}
+                        })
+            .then(function (response) {
+                set_historyLength_from_spring(response);
+            })
+            .catch(function (error) {
+                console.log(error);
+            })
+            // end of nested ajax for historyLength
+        })
+        .catch(function (error) {
+            console.log(error);
+        })
+    }
+    // Update state on startup - End
 
     componentDidUpdate(){
         console.log(this.state)
     }
 
+
     historyViewChange(delta) {
+        console.log("PrevHistoryViewIndex: " + this.state.historyViewIndex);
         let newHistoryIndex = this.state.historyViewIndex;
-        let historyLength = this.state.resultArray.length;
+        let historyLength = this.state.historyLength;
+
+        console.log("newHistoryIndex: " +newHistoryIndex + ", historyLength: " + historyLength)
         if (delta === 'prev') {
-            newHistoryIndex < historyLength ? (newHistoryIndex = parseInt(this.state.historyViewIndex) - 1) : console.log("end of history");
-        } else {
-            newHistoryIndex > 0 ? (newHistoryIndex = parseInt(this.state.historyViewIndex) + 1) : console.log("end of history");
+            newHistoryIndex > 0 ? (newHistoryIndex = parseInt(this.state.historyViewIndex) - 1) : console.log("end of history");
+        }
+        if (delta === 'next') {
+            newHistoryIndex < historyLength ? (newHistoryIndex = parseInt(this.state.historyViewIndex) + 1) : console.log("end of history");
         }
         
         console.log(newHistoryIndex)
-        if ( newHistoryIndex > 0 && newHistoryIndex < this.state.resultArray.length) {
+        if ( newHistoryIndex > 0 && newHistoryIndex <= historyLength) {
             this.setState({
                 historyViewIndex: newHistoryIndex
             }, () => {
@@ -67,36 +117,116 @@ class App extends Component {
             console.log('end of history')
         }
     }
-
-    lastInputSetter(lastInput) {
-        // console.log(`lastInputFromSetter: ${lastInput}`)
-        this.setState({
-            
-        }, () => {
-            this.setState({
-
-            })
-        })
-    }
+    // historyViewChange(delta) {
+    //     let newHistoryIndex = this.state.historyViewIndex;
+    //     let historyLength = this.state.resultArray.length;
+    //     if (delta === 'prev') {
+    //         newHistoryIndex < historyLength ? (newHistoryIndex = parseInt(this.state.historyViewIndex) - 1) : console.log("end of history");
+    //     } else {
+    //         newHistoryIndex > 0 ? (newHistoryIndex = parseInt(this.state.historyViewIndex) + 1) : console.log("end of history");
+    //     }
+        
+    //     console.log(newHistoryIndex)
+    //     if ( newHistoryIndex > 0 && newHistoryIndex < this.state.resultArray.length) {
+    //         this.setState({
+    //             historyViewIndex: newHistoryIndex
+    //         }, () => {
+ 
+    //         })
+    //     }
+    //     else {
+    //         console.log('end of history')
+    //     }
+    // }
 
     historyScreenPress(){
-
-        let equationFromHistory = this.state.resultArray[parseInt(this.state.historyViewIndex)].equation;
-
-        this.setState({
-                lastResult: `(${this.state.resultArray[parseInt(this.state.historyViewIndex)].result})`,
-                lastInput: ')',
-                currentExpression: `${this.state.resultArray[parseInt(this.state.historyViewIndex)].result}`,
-                wholeEquation: [''],
-                historyViewIndex: this.state.resultArray.length - 1,
-        }, () => {
-
+        //helper functions
+        const set_pgArray_from_spring = (response) => {
             this.setState({
-                resultArray: [...this.state.resultArray, { equation: equationFromHistory, result: parseFloat(safeEval(equationFromHistory.toString().replace(/,/g,'')).toFixed(4).toString()) }],
-                historyIndex: this.state.historyIndex + 1
+                pgArray: response.data
+            }, () => {
+                // nested ajax for historyLength
+                axios.get('https://calc-spring.herokuapp.com/postgres/equation/count', 
+                            {
+                                headers: {'Access-Control-Allow-Origin': '*'}
+                            })
+                .then(function (res) {
+                    
+                    set_historyLength_from_spring(res);
+
+                })
+                .catch(function (error) {
+                    console.log(error);
+                })
+                // end of nested ajax for historyLength
             })
+        }
+        const set_historyLength_from_spring = (response) => {
+            this.setState({
+                historyLength: response.data
+            }, () => {
+                this.setState({
+                    historyIndex: this.state.historyLength
+                })
+            })
+        }
+        // helper functions
+
+        let equationFromHistory = this.state.pgArray[parseInt(this.state.historyViewIndex) - 1].equation;
+        console.log(equationFromHistory)
+        this.setState({
+                lastResult: `(${this.state.pgArray[parseInt(this.state.historyViewIndex) - 1].result})`,
+                lastInput: ')',
+                currentExpression: `${this.state.pgArray[parseInt(this.state.historyViewIndex) - 1].result}`,
+                wholeEquation: [''],
+                historyViewIndex: this.state.pgArray.length - 1,
+        }, () => {
+            axios.post('https://calc-spring.herokuapp.com/postgres/equation', { 
+                        equation: equationFromHistory, 
+                        result: `${parseFloat(safeEval(equationFromHistory.toString().replace(/,/g,'')).toFixed(4).toString())}`
+                    },
+                    {
+                        headers: {'Access-Control-Allow-Origin': '*'}
+                    }
+                    ).then(function (response) {
+                        // Make a request for equations
+                        axios.get('https://calc-spring.herokuapp.com/postgres/equation/all', 
+                                    {
+                                        headers: {'Access-Control-Allow-Origin': '*'}
+                                    })
+                        .then(function (res) {
+                        // handle success
+                            set_pgArray_from_spring(res);
+                        })
+                        .catch(function (error) {
+                            console.log(error);
+                        })      
+                
+              })
+              .catch(function (error) {
+                console.log(error);
+              });
         })
     }
+
+    // historyScreenPress(){
+
+    //     let equationFromHistory = this.state.resultArray[parseInt(this.state.historyViewIndex)].equation;
+
+    //     this.setState({
+    //             lastResult: `(${this.state.resultArray[parseInt(this.state.historyViewIndex)].result})`,
+    //             lastInput: ')',
+    //             currentExpression: `${this.state.resultArray[parseInt(this.state.historyViewIndex)].result}`,
+    //             wholeEquation: [''],
+    //             historyViewIndex: this.state.resultArray.length - 1,
+    //     }, () => {
+
+    //         this.setState({
+    //             resultArray: [...this.state.resultArray, { equation: equationFromHistory, result: parseFloat(safeEval(equationFromHistory.toString().replace(/,/g,'')).toFixed(4).toString()) }],
+    //             historyIndex: this.state.historyIndex + 1
+    //         })
+    //     })
+    // }
 
     numberPress(input) {
         // console.log(`lastInputFromState: ${this.state.lastInput} lastResult = {this.state.lastResult}, thisInput: ${input}`)
@@ -121,7 +251,7 @@ class App extends Component {
             })
         }
         else if (this.state.lastInput === ')' && input>=0 && input<=9) {
-            let multiplyParenthesis = '*'+input
+            let multiplyParenthesis = '*' + input
             this.setState({
                 currentExpression: this.state.currentExpression.concat(multiplyParenthesis),
                 lastInput: input
@@ -192,6 +322,38 @@ class App extends Component {
 
     equalsPress(currentExpressionFromProps) {
 
+        //helper functions
+        const set_pgArray_from_spring = (response) => {
+            this.setState({
+                pgArray: response.data
+            }, () => {
+                // nested ajax for historyLength
+                axios.get('https://calc-spring.herokuapp.com/postgres/equation/count', 
+                            {
+                                headers: {'Access-Control-Allow-Origin': '*'}
+                            })
+                .then(function (res) {
+                    
+                    set_historyLength_from_spring(res);
+
+                })
+                .catch(function (error) {
+                    console.log(error);
+                })
+                // end of nested ajax for historyLength
+            })
+        }
+        const set_historyLength_from_spring = (response) => {
+            this.setState({
+                historyLength: response.data
+            }, () => {
+                this.setState({
+                    historyIndex: this.state.historyLength
+                })
+            })
+        }
+        // helper functions
+
         let currentExpressionParenCheck = currentExpressionFromProps.split('')
         let countParensLeft = 0;
         let countParensRight = 0;
@@ -239,14 +401,31 @@ class App extends Component {
                     } 
                     else {
 
-                        this.setState({
-                            resultArray: [...this.state.resultArray, { equation: this.state.wholeEquation.join(''), result: this.state.lastResult }],
-                            historyIndex: this.state.historyIndex + 1
-                        }, () => {
-                            this.setState({
-                                historyViewIndex: this.state.historyIndex
-                            })
-                        })
+                        axios.post('https://calc-spring.herokuapp.com/postgres/equation', { 
+                                        equation: this.state.wholeEquation.toString().replace(/,/g,''), 
+                                        result: `${parseFloat(safeEval(this.state.wholeEquation.toString().replace(/,/g,'')).toFixed(4).toString())}`
+                                    },
+                                    {
+                                        headers: {'Access-Control-Allow-Origin': '*'}
+                                    }
+                                    ).then(function (response) {
+                                        // Make a request for equations
+                                        axios.get('https://calc-spring.herokuapp.com/postgres/equation/all', 
+                                                    {
+                                                        headers: {'Access-Control-Allow-Origin': '*'}
+                                                    })
+                                        .then(function (res) {
+                                        // handle success
+                                            set_pgArray_from_spring(res);
+                                        })
+                                        .catch(function (error) {
+                                            console.log(error);
+                                        })      
+                                
+                              })
+                              .catch(function (error) {
+                                console.log(error);
+                              });
                     }
                 });
             }
@@ -281,14 +460,31 @@ class App extends Component {
                         })
                     }
                     else (
-                        this.setState({
-                            resultArray: [...this.state.resultArray, { equation: this.state.wholeEquation, result: this.state.lastResult }],
-                            historyIndex: this.state.historyIndex + 1
-                        }, () => {
-                            this.setState({
-                                historyViewIndex: this.state.historyIndex-1
-                            })
-                        })
+                        axios.post('https://calc-spring.herokuapp.com/postgres/equation', { 
+                                        equation: this.state.wholeEquation.toString().replace(/,/g,''), 
+                                        result: `${parseFloat(safeEval(this.state.wholeEquation.toString().replace(/,/g,'')).toFixed(4).toString())}`
+                                    },
+                                    {
+                                        headers: {'Access-Control-Allow-Origin': '*'}
+                                    }
+                                    ).then(function (response) {
+                                        // Make a request for equations
+                                        axios.get('https://calc-spring.herokuapp.com/postgres/equation/all', 
+                                                    {
+                                                        headers: {'Access-Control-Allow-Origin': '*'}
+                                                    })
+                                        .then(function (res) {
+                                        // handle success
+                                            set_pgArray_from_spring(res);
+                                        })
+                                        .catch(function (error) {
+                                            console.log(error);
+                                        })      
+                                
+                              })
+                              .catch(function (error) {
+                                console.log(error);
+                              })
                     )
                 });
             }
@@ -319,39 +515,42 @@ class App extends Component {
 
                             <div className='row container' style={{width: '100%',height: '10vh',marginTop: '0px', marginBottom: '0px'}}>
                                 <HistoryButton delta='-1' operation='prev' style={{fontSize: '2vh'}} historyViewIndex = {this.state.historyViewIndex} historyViewIndexChangeHandler = {this.historyViewChange}/>
-                                <HistoryScreen style={{margin: '0px'}} historyScreenIndex={this.state.resultArray.length} historyScreenPressHandler = {this.historyScreenPress} displayHistoryEquation = {this.state.resultArray[this.state.historyViewIndex].equation} resultFromHistory = {this.state.resultArray[this.state.historyViewIndex].result}/>
+                                <HistoryScreen style={{margin: '0px'}} historyScreenIndex={this.state.pgArray.length} historyScreenPressHandler = {this.historyScreenPress} displayHistoryEquation = {this.state.pgArray[this.state.historyViewIndex-1].equation} resultFromHistory = {this.state.pgArray[this.state.historyViewIndex-1].result}/>
                                 <HistoryButton delta='1' operation='next' style={{fontSize: '2vh'}} historyViewIndex = {this.state.historyViewIndex} historyViewIndexChangeHandler = {this.historyViewChange}/>
                             </div>
                             <ButtonPad style={{margin: '0px'}}>
-                                <div className='row' style={{height: '20%', margin: '0px'}}>
-                                    <OperationButton operation='(' numberPressHandler={this.numberPress} currentExpression={this.state.currentExpression} wholeEquation={this.state.wholeEquation} lastInputHandler={this.lastInputSetter} lastInput = {this.state.lastInput} lastResult = {this.state.lastResult}/>
-                                    <OperationButton operation=')' numberPressHandler={this.numberPress} currentExpression={this.state.currentExpression} wholeEquation={this.state.wholeEquation}  lastInputHandler={this.lastInputSetter} lastInput = {this.state.lastInput} lastResult = {this.state.lastResult}/>
-                                    <OperationButton operation='AC' numberPressHandler={this.numberPress} currentExpression={this.state.currentExpression} wholeEquation={this.state.wholeEquation}  lastInputHandler={this.lastInputSetter} lastInput = {this.state.lastInput} lastResult = {this.state.lastResult}/>
-                                    <OperationButton operation='C' numberPressHandler={this.numberPress} currentExpression={this.state.currentExpression} wholeEquation={this.state.wholeEquation}  lastInputHandler={this.lastInputSetter} lastInput = {this.state.lastInput} lastResult = {this.state.lastResult}/>
+                                <div className='row' style={{height: '18%', margin: '0px'}}>
+                                    <OperationButton operation='(' numberPressHandler={this.numberPress} currentExpression={this.state.currentExpression} wholeEquation={this.state.wholeEquation}  lastInput = {this.state.lastInput} lastResult = {this.state.lastResult}/>
+                                    <OperationButton operation=')' numberPressHandler={this.numberPress} currentExpression={this.state.currentExpression} wholeEquation={this.state.wholeEquation}   lastInput = {this.state.lastInput} lastResult = {this.state.lastResult}/>
+                                    <OperationButton operation='AC' numberPressHandler={this.numberPress} currentExpression={this.state.currentExpression} wholeEquation={this.state.wholeEquation}   lastInput = {this.state.lastInput} lastResult = {this.state.lastResult}/>
+                                    <OperationButton operation='C' numberPressHandler={this.numberPress} currentExpression={this.state.currentExpression} wholeEquation={this.state.wholeEquation}   lastInput = {this.state.lastInput} lastResult = {this.state.lastResult}/>
                                 </div>
-                                <div className='row' style={{height: '20%', margin: '0px'}}>
-                                    <NumberButton number='7' numberPressHandler={this.numberPress} currentExpression={this.state.currentExpression} lastInputHandler={this.lastInputSetter}/>
-                                    <NumberButton number='8' numberPressHandler={this.numberPress} currentExpression={this.state.currentExpression} lastInputHandler={this.lastInputSetter}/>
-                                    <NumberButton number='9' numberPressHandler={this.numberPress} currentExpression={this.state.currentExpression} lastInputHandler={this.lastInputSetter}/>
-                                    <OperationButton operation='/' numberPressHandler={this.numberPress} currentExpression={this.state.currentExpression} wholeEquation={this.state.wholeEquation} lastInputHandler={this.lastInputSetter} lastInput = {this.state.lastInput} lastResult = {this.state.lastResult}/>
+                                <div className='row' style={{height: '18%', margin: '0px'}}>
+                                    <NumberButton number='7' numberPressHandler={this.numberPress} currentExpression={this.state.currentExpression} />
+                                    <NumberButton number='8' numberPressHandler={this.numberPress} currentExpression={this.state.currentExpression} />
+                                    <NumberButton number='9' numberPressHandler={this.numberPress} currentExpression={this.state.currentExpression} />
+                                    <OperationButton operation='/' numberPressHandler={this.numberPress} currentExpression={this.state.currentExpression} wholeEquation={this.state.wholeEquation}  lastInput = {this.state.lastInput} lastResult = {this.state.lastResult}/>
                                 </div>
-                                <div className='row' style={{height: '20%', margin: '0px'}}>
-                                    <NumberButton number='4' numberPressHandler={this.numberPress} currentExpression={this.state.currentExpression} lastInputHandler={this.lastInputSetter}/>
-                                    <NumberButton number='5' numberPressHandler={this.numberPress} currentExpression={this.state.currentExpression} lastInputHandler={this.lastInputSetter}/>
-                                    <NumberButton number='6' numberPressHandler={this.numberPress} currentExpression={this.state.currentExpression} lastInputHandler={this.lastInputSetter}/>
-                                    <OperationButton operation='*' numberPressHandler={this.numberPress} currentExpression={this.state.currentExpression} wholeEquation={this.state.wholeEquation} lastInputHandler={this.lastInputSetter} lastInput = {this.state.lastInput} lastResult = {this.state.lastResult}/>
+                                <div className='row' style={{height: '18%', margin: '0px'}}>
+                                    <NumberButton number='4' numberPressHandler={this.numberPress} currentExpression={this.state.currentExpression} />
+                                    <NumberButton number='5' numberPressHandler={this.numberPress} currentExpression={this.state.currentExpression} />
+                                    <NumberButton number='6' numberPressHandler={this.numberPress} currentExpression={this.state.currentExpression} />
+                                    <OperationButton operation='*' numberPressHandler={this.numberPress} currentExpression={this.state.currentExpression} wholeEquation={this.state.wholeEquation}  lastInput = {this.state.lastInput} lastResult = {this.state.lastResult}/>
                                 </div>
-                                <div className='row' style={{height: '20%', margin: '0px'}}>
-                                    <NumberButton number='1' numberPressHandler={this.numberPress} currentExpression={this.state.currentExpression} lastInputHandler={this.lastInputSetter}/>
-                                    <NumberButton number='2' numberPressHandler={this.numberPress} currentExpression={this.state.currentExpression} lastInputHandler={this.lastInputSetter}/>
-                                    <NumberButton number='3' numberPressHandler={this.numberPress} currentExpression={this.state.currentExpression} lastInputHandler={this.lastInputSetter}/>
-                                    <OperationButton operation='-' numberPressHandler={this.numberPress} currentExpression={this.state.currentExpression} wholeEquation={this.state.wholeEquation} lastInputHandler={this.lastInputSetter} lastInput = {this.state.lastInput} lastResult = {this.state.lastResult}/>
+                                <div className='row' style={{height: '18%', margin: '0px'}}>
+                                    <NumberButton number='1' numberPressHandler={this.numberPress} currentExpression={this.state.currentExpression} />
+                                    <NumberButton number='2' numberPressHandler={this.numberPress} currentExpression={this.state.currentExpression} />
+                                    <NumberButton number='3' numberPressHandler={this.numberPress} currentExpression={this.state.currentExpression} />
+                                    <OperationButton operation='-' numberPressHandler={this.numberPress} currentExpression={this.state.currentExpression} wholeEquation={this.state.wholeEquation}  lastInput = {this.state.lastInput} lastResult = {this.state.lastResult}/>
                                 </div>
-                                <div className='row' style={{height: '20%', margin: '0px'}}>
-                                    <NumberButton number='0' numberPressHandler={this.numberPress} currentExpression={this.state.currentExpression} lastInputHandler={this.lastInputSetter}/>
-                                    <OperationButton operation='.' numberPressHandler={this.numberPress} currentExpression={this.state.currentExpression} wholeEquation={this.state.wholeEquation} lastInputHandler={this.lastInputSetter} lastInput = {this.state.lastInput} lastResult = {this.state.lastResult}/>
-                                    <OperationButton operation='=' equalsHandler={this.equalsPress} numberPressHandler={this.numberPress} currentExpression={this.state.currentExpression} wholeEquation={this.state.wholeEquation} lastInputHandler={this.lastInputSetter} lastInput = {this.state.lastInput} lastResult = {this.state.lastResult}/>
-                                    <OperationButton operation='+' numberPressHandler={this.numberPress} currentExpression={this.state.currentExpression} wholeEquation={this.state.wholeEquation} lastInputHandler={this.lastInputSetter} lastInput = {this.state.lastInput} lastResult = {this.state.lastResult}/>
+                                <div className='row' style={{height: '18%', margin: '0px'}}>
+                                    <NumberButton number='0' numberPressHandler={this.numberPress} currentExpression={this.state.currentExpression} />
+                                    <OperationButton operation='.' numberPressHandler={this.numberPress} currentExpression={this.state.currentExpression} wholeEquation={this.state.wholeEquation}  lastInput = {this.state.lastInput} lastResult = {this.state.lastResult}/>
+                                    <OperationButton operation='=' equalsHandler={this.equalsPress} numberPressHandler={this.numberPress} currentExpression={this.state.currentExpression} wholeEquation={this.state.wholeEquation}  lastInput = {this.state.lastInput} lastResult = {this.state.lastResult}/>
+                                    <OperationButton operation='+' numberPressHandler={this.numberPress} currentExpression={this.state.currentExpression} wholeEquation={this.state.wholeEquation}  lastInput = {this.state.lastInput} lastResult = {this.state.lastResult}/>
+                                </div>
+                                <div className='row' style={{height: '10%', margin: '0px'}}>
+                                    <div className='col s6 offset-s3' style={{display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '4vh', background: 'white', color: 'black', borderRadius: '13px'}} >Delete History</div>
                                 </div>
                             </ButtonPad>
                         </CalculatorBody>
