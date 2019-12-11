@@ -60,7 +60,7 @@ class App extends Component {
             })
         }
         // Make a request for equation
-        axios.get('https://calc-spring.herokuapp.com/postgres/equation/all', 
+        axios.get('/postgres/equation/all', 
                     {
                         headers: {'Access-Control-Allow-Origin': '*'}
                     })
@@ -69,7 +69,7 @@ class App extends Component {
             set_pgArray_from_spring(response);
             
             // nested ajax for historyLength
-            axios.get('https://calc-spring.herokuapp.com/postgres/equation/count', 
+            axios.get('/postgres/equation/count', 
                         {
                             headers: {'Access-Control-Allow-Origin': '*'}
                         })
