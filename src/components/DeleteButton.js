@@ -9,7 +9,7 @@ class DeleteButton extends React.Component {
 
     render(){
         return (
-            <div className='col s6 offset-s3'
+            <div className='col s8 offset-s2'
                 style={{
                         height: '100%',
                         display: 'flex', 
@@ -20,7 +20,7 @@ class DeleteButton extends React.Component {
                         border: '5px solid #49494D',
                         borderRadius: '13px',
                         fontWeight: '800',
-                        fontSize: '4vh'
+                        fontSize: '2vh'
                 }}
                 onClick={() => {this.props.deleteHistoryHandler();}}>            
                 <p>{this.props.operation}</p>
