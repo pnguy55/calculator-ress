@@ -580,6 +580,12 @@ class App extends Component {
                     currentExpressionJoined = currentExpressionJoined[1]
                 }
                 console.log('firstNumber: '+ takeOffFirstNumber[0], 'WholeExpression: ' + takeOffFirstNumber, "currentExpression: "+ currentExpressionJoined)
+                
+                if( currentExpressionJoined === '.') {
+                    takeOffFirstNumber = takeOffFirstNumber[0].split('')
+                    takeOffFirstNumber[0] = '';
+                    currentExpressionJoined = takeOffFirstNumber.toString().replace(/,/g,'');
+                }
 
                 this.setState({
                     wholeEquation: firstOperator === undefined ? takeOffFirstNumber : firstOperator === currentExpressionJoined ? this.state.wholeEquation.concat(`${currentExpressionJoined}`) : this.state.wholeEquation.concat(`${firstOperator}(${currentExpressionJoined})`),
