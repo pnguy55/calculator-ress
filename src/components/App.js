@@ -166,7 +166,7 @@ class App extends Component {
                 historyLength: response.data
             }, () => {
                 this.setState({
-                    historyIndex: this.state.historyLength
+                    historyViewIndex: this.state.historyLength
                 })
             })
         }
@@ -348,7 +348,7 @@ class App extends Component {
                 historyLength: response.data
             }, () => {
                 this.setState({
-                    historyIndex: this.state.historyLength
+                    historyViewIndex: this.state.historyLength
                 })
             })
         }
