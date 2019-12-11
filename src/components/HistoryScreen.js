@@ -15,13 +15,13 @@ const HistoryScreen = (props) => {
                     overflow: 'hidden',
                 }}
              onClick = {() => { 
-                            if (props.historyScreenIndex > 1) {
+                            if (props.historyScreenIndex > 0) {
                                 props.historyScreenPressHandler(); 
                              } else {
                                console.log('No History Yet') 
                             } 
                        }}>
-        {props.displayHistoryEquation} = {props.resultFromHistory}
+        {props.displayHistoryEquation===undefined? '' : props.displayHistoryEquation} = {props.resultFromHistory===undefined? '' : props.resultFromHistory}
         
 
         </div>

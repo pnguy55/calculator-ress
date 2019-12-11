@@ -11,6 +11,7 @@ import HistoryButton from './HistoryButton';
 import NumberButton from './NumberButton';
 import OperationButton from './OperationButton';
 import ButtonPad from './ButtonPad';
+import DeleteButton from './DeleteButton';
 
 var axios = require('axios');
 var safeEval = require('safe-eval');
@@ -45,20 +46,42 @@ class App extends Component {
         this.equalsPress = this.equalsPress.bind(this);
         this.historyViewChange = this.historyViewChange.bind(this);
         this.historyScreenPress = this.historyScreenPress.bind(this);
+        this.deleteHistory = this.deleteHistory.bind(this);
     }
     // Update state on startup - Start
     componentDidMount() {
-        const set_pgArray_from_spring = (response) => {
+        //helper functions
+        const set_pgArray_from_spring = (response) => {       
             this.setState({
                 pgArray: response.data
+            }, () => {
+                // nested ajax for historyLength
+                axios.get('https://calc-spring.herokuapp.com/postgres/equation/count', 
+                            {
+                                headers: {'Access-Control-Allow-Origin': '*'}
+                            })
+                .then(function (res) {
+                    
+                    set_historyLength_from_spring(res);
+
+                })
+                .catch(function (error) {
+                    console.log(error);
+                })
+                // end of nested ajax for historyLength
             })
         }
         const set_historyLength_from_spring = (response) => {
             this.setState({
-                historyLength: response.data,
-                historyViewIndex: response.data
+                historyLength: response.data
+            }, () => {
+                this.setState({
+                    historyViewIndex: this.state.historyLength
+                })
             })
         }
+        // helper functions
+
         // Make a request for equation
         axios.get('https://calc-spring.herokuapp.com/postgres/equation/all', 
                     {
@@ -67,19 +90,6 @@ class App extends Component {
         .then(function (response) {
         // handle success
             set_pgArray_from_spring(response);
-            
-            // nested ajax for historyLength
-            axios.get('https://calc-spring.herokuapp.com/postgres/equation/count', 
-                        {
-                            headers: {'Access-Control-Allow-Origin': '*'}
-                        })
-            .then(function (response) {
-                set_historyLength_from_spring(response);
-            })
-            .catch(function (error) {
-                console.log(error);
-            })
-            // end of nested ajax for historyLength
         })
         .catch(function (error) {
             console.log(error);
@@ -91,6 +101,86 @@ class App extends Component {
         console.log(this.state)
     }
 
+    deleteHistory(res){
+        //helper functions
+        const set_pgArray_from_spring = (response) => {
+            this.setState({
+                pgArray: response.data,
+                historyViewIndex: 1
+            }, () => {
+                // nested ajax for historyLength
+                axios.get('https://calc-spring.herokuapp.com/postgres/equation/count', 
+                            {
+                                headers: {'Access-Control-Allow-Origin': '*'}
+                            })
+                .then(function (res) {
+                    
+                    set_historyLength_from_spring(res);
+
+                })
+                .catch(function (error) {
+                    console.log(error);
+                })
+                // end of nested ajax for historyLength
+            })
+        }
+        const set_historyLength_from_spring = (response) => {
+            this.setState({
+                historyLength: response.data
+            }, () => {
+                this.setState({
+                    historyViewIndex: this.state.historyLength
+                })
+            })
+        }
+        // helper functions
+
+
+
+        axios.delete('https://calc-spring.herokuapp.com/postgres/equation/all', 
+                {
+                    headers: {'Access-Control-Allow-Origin': '*'}
+                })
+        .then(function (res) {
+        // handle success
+                axios.post('https://calc-spring.herokuapp.com/postgres/equation', { 
+                        equation: '', 
+                        result: ''
+                    },
+                    {
+                        headers: {'Access-Control-Allow-Origin': '*'}
+                    }
+                    ).then(function (response) {
+                        // Make a request for equations
+                        axios.get('https://calc-spring.herokuapp.com/postgres/equation/all', 
+                                    {
+                                        headers: {'Access-Control-Allow-Origin': '*'}
+                                    })
+                        .then(function (res) {
+                        // handle success
+                            set_pgArray_from_spring(res);
+                        })
+                        .catch(function (error) {
+                            console.log(error);
+                        })      
+                
+                })
+                .catch(function (error) {
+                console.log(error);
+                });
+        })
+        .catch(function (error) {
+        console.log(error);
+        })   
+
+
+
+
+
+        
+
+        
+    }
 
     historyViewChange(delta) {
         console.log("PrevHistoryViewIndex: " + this.state.historyViewIndex);
@@ -432,23 +522,68 @@ class App extends Component {
             else {
     
                 let takeOffFirstNumber = currentExpressionFromProps.split(/(?=[-+/*()])/);
-                console.log('pre-splice' + takeOffFirstNumber);
+                
+                console.log('pre-splice: ' + takeOffFirstNumber);
                 takeOffFirstNumber.splice(0,2);
                 
                 console.log('firstNumber: '+ takeOffFirstNumber[0], 'WholeExpression: ' + takeOffFirstNumber)
-                let firstOperator = takeOffFirstNumber[0].split('');
-                firstOperator = firstOperator.shift();
                 
-                let currentExpressionArray = takeOffFirstNumber.join('').split('');
-                currentExpressionArray.splice(0,1);
-                let currentExpressionJoined = currentExpressionArray.join('');
-    
+                    
+                let firstOperator; 
+                
+                if(takeOffFirstNumber[0] !== undefined) {
+                    firstOperator= takeOffFirstNumber[0].split('');
+                    firstOperator = firstOperator.shift();
+                }
+                else if(takeOffFirstNumber[0] === undefined) {
+                    takeOffFirstNumber = currentExpressionFromProps.toString().replace(/[()]/g,'')
+                }
+
+                let currentExpressionArray;
+                let currentExpressionJoined;
+
+                if(takeOffFirstNumber.length > 2 && takeOffFirstNumber[0] !== undefined) {
+                    currentExpressionArray= takeOffFirstNumber.join('').split('');
+                    currentExpressionArray.splice(0,1);
+                    currentExpressionJoined = currentExpressionArray.join('');
+                }
+                else{
+                    currentExpressionJoined = takeOffFirstNumber;
+                }
+
                 if(firstOperator === ')') {
                     firstOperator = '+'
                 }
+
+                if(takeOffFirstNumber[1] === '*') {
+                    takeOffFirstNumber[0] = ''
+                    takeOffFirstNumber[1] = ''
+                    firstOperator = '*'
+                    currentExpressionJoined = takeOffFirstNumber.join('')
+                }
+                else if(takeOffFirstNumber[1] === '/') {
+                    takeOffFirstNumber[0] = ''
+                    takeOffFirstNumber[1] = ''
+                    firstOperator = '/'
+                    currentExpressionJoined = takeOffFirstNumber.join('')
+                }
+                else if(takeOffFirstNumber[1] === '+') {
+                    takeOffFirstNumber[0] = ''
+                    takeOffFirstNumber[1] = ''
+                    firstOperator = '+'
+                    currentExpressionJoined = takeOffFirstNumber.join('')
+                }
+                
+
+                if( takeOffFirstNumber === currentExpressionJoined ) {
+                    currentExpressionJoined = currentExpressionJoined[0].split('');
+                    currentExpressionJoined = currentExpressionJoined[1]
+                }
+                console.log('firstNumber: '+ takeOffFirstNumber[0], 'WholeExpression: ' + takeOffFirstNumber, "currentExpression: "+ currentExpressionJoined)
+
                 this.setState({
-                    wholeEquation: this.state.wholeEquation.concat(`${firstOperator}(${currentExpressionJoined})`),
-                    currentExpression: `(${result})`,
+                    wholeEquation: firstOperator === undefined ? takeOffFirstNumber : firstOperator === currentExpressionJoined ? this.state.wholeEquation.concat(`${currentExpressionJoined}`) : this.state.wholeEquation.concat(`${firstOperator}(${currentExpressionJoined})`),
+                    currentExpression: firstOperator === currentExpressionJoined ? result :`(${result})`,
                     lastInput: ')',
                     lastResult: `${result}`
                 }, () => {
@@ -550,7 +685,7 @@ class App extends Component {
                                     <OperationButton operation='+' numberPressHandler={this.numberPress} currentExpression={this.state.currentExpression} wholeEquation={this.state.wholeEquation}  lastInput = {this.state.lastInput} lastResult = {this.state.lastResult}/>
                                 </div>
                                 <div className='row' style={{height: '10%', margin: '0px'}}>
-                                    <div className='col s6 offset-s3' style={{display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '4vh', background: 'white', color: 'black', borderRadius: '13px'}} >Delete History</div>
+                                    <DeleteButton operation='Delete History' deleteHistoryHandler={this.deleteHistory} ></DeleteButton>
                                 </div>
                             </ButtonPad>
                         </CalculatorBody>
