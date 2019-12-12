@@ -473,10 +473,10 @@ class App extends Component {
         }   
         else {
             let result = parseFloat(safeEval(currentExpressionFromProps.replace(/,/g,'')).toFixed(4)).toString();
-
+            console.log(parseFloat(this.state.currentExpression), parseFloat(this.state.wholeEquation[0]))
             if (this.state.wholeEquation.length === 1) {
                 this.setState({
-                    wholeEquation: this.state.wholeEquation.concat(`(${currentExpressionFromProps})`),
+                    wholeEquation: parseFloat(this.state.currentExpression.toString().replace(/[()]/g,'')) === parseFloat(this.state.wholeEquation.toString().replace(/[()]/g,'')) ? this.state.wholeEquation : this.state.wholeEquation.concat(`(${currentExpressionFromProps})`),
                     currentExpression: `(${result})`,
                     lastInput: ')',
                     lastResult: `${result}`
