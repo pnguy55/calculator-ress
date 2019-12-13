@@ -525,6 +525,7 @@ class App extends Component {
                 
                 console.log('pre-splice: ' + takeOffFirstNumber);
                 takeOffFirstNumber.splice(0,2);
+
                 
                 console.log('firstNumber: '+ takeOffFirstNumber[0], 'WholeExpression: ' + takeOffFirstNumber)
                 
@@ -574,11 +575,15 @@ class App extends Component {
                     currentExpressionJoined = takeOffFirstNumber.join('')
                 }
                 
-
+                console.log('firstNumber: '+ takeOffFirstNumber[0], 'WholeExpression: ' + takeOffFirstNumber, "currentExpression: "+ currentExpressionJoined)
+                currentExpressionJoined[0] === ')' ? currentExpressionJoined.splice(0,1).toString() : console.log('not closing paren');
                 if( takeOffFirstNumber === currentExpressionJoined ) {
                     currentExpressionJoined = currentExpressionJoined[0].split('');
                     currentExpressionJoined = currentExpressionJoined[1]
+                    console.log('fixed the undefined 1 number situation')
                 }
+
+
                 console.log('firstNumber: '+ takeOffFirstNumber[0], 'WholeExpression: ' + takeOffFirstNumber, "currentExpression: "+ currentExpressionJoined)
                 
                 if( currentExpressionJoined === '.') {
