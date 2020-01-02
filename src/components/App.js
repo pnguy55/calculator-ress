@@ -130,7 +130,11 @@ class App extends Component {
             }, () => {
                 this.setState({
                     historyViewIndex: this.state.historyLength
-                })
+                }, () => this.setState({
+                    currentExpression: '',
+                    lastInput: '',
+                    wholeEquation: ['']
+                }))
             })
         }
         // helper functions
@@ -172,14 +176,6 @@ class App extends Component {
         .catch(function (error) {
         console.log(error);
         })   
-
-
-
-
-
-        
-
-        
     }
 
     historyViewChange(delta) {
@@ -578,9 +574,11 @@ class App extends Component {
                 console.log('firstNumber: '+ takeOffFirstNumber[0], 'WholeExpression: ' + takeOffFirstNumber, "currentExpression: "+ currentExpressionJoined)
                 currentExpressionJoined[0] === ')' ? currentExpressionJoined.splice(0,1).toString() : console.log('not closing paren');
                 if( takeOffFirstNumber === currentExpressionJoined ) {
-                    currentExpressionJoined = currentExpressionJoined[0].split('');
-                    currentExpressionJoined = currentExpressionJoined[1]
-                    console.log('fixed the undefined 1 number situation')
+                        currentExpressionJoined = currentExpressionJoined[0].split('');
+                        currentExpressionJoined[0]=''
+                        currentExpressionJoined = currentExpressionJoined.join('');
+                        console.log('fixed the undefined 1 number situation')
+
                 }
 
 
@@ -641,13 +639,7 @@ class App extends Component {
         
 
     }
-    // saveEquation() {
-    //     this.setState({
-    //         wholeEquation: currentExpression
-    //     })
-    //     get case where they try to press enter without closing parens
-    // }
-
+    
     render() {
         return (
             <div>
