@@ -486,10 +486,12 @@ class App extends Component {
                         })
                     } 
                     else {
-
+                        console.log(this.state.wholeEquation.toString().replace(/,/g,''))
+                        console.log("posted result: "+`${parseFloat(safeEval(this.state.wholeEquation.toString().replace(/,/g,'')).toFixed(4).toString())}`)
+    
                         axios.post('https://calc-spring.herokuapp.com/postgres/equation', { 
                                         equation: this.state.wholeEquation.toString().replace(/,/g,''), 
-                                        result: `${parseFloat(safeEval(this.state.wholeEquation.toString().replace(/,/g,'')).toFixed(4).toString())}`
+                                        result: this.state.lastResult
                                     },
                                     {
                                         headers: {'Access-Control-Allow-Origin': '*'}
@@ -603,10 +605,10 @@ class App extends Component {
                             wholeEquation: ['']
                         })
                     }
-                    else (
+                    else {
                         axios.post('https://calc-spring.herokuapp.com/postgres/equation', { 
                                         equation: this.state.wholeEquation.toString().replace(/,/g,''), 
-                                        result: `${parseFloat(safeEval(this.state.wholeEquation.toString().replace(/,/g,'')).toFixed(4).toString())}`
+                                        result: this.state.lastResult
                                     },
                                     {
                                         headers: {'Access-Control-Allow-Origin': '*'}
@@ -629,7 +631,7 @@ class App extends Component {
                               .catch(function (error) {
                                 console.log(error);
                               })
-                    )
+                    }
                 });
             }
         }
