@@ -663,7 +663,7 @@ class App extends Component {
                                     <OperationButton operation='(' numberPressHandler={this.numberPress} currentExpression={this.state.currentExpression} wholeEquation={this.state.wholeEquation}  lastInput = {this.state.lastInput} lastResult = {this.state.lastResult}/>
                                     <OperationButton operation=')' numberPressHandler={this.numberPress} currentExpression={this.state.currentExpression} wholeEquation={this.state.wholeEquation}   lastInput = {this.state.lastInput} lastResult = {this.state.lastResult}/>
                                     <OperationButton operation='AC' numberPressHandler={this.numberPress} currentExpression={this.state.currentExpression} wholeEquation={this.state.wholeEquation}   lastInput = {this.state.lastInput} lastResult = {this.state.lastResult}/>
-                                    <OperationButton operation='C' numberPressHandler={this.numberPress} currentExpression={this.state.currentExpression} wholeEquation={this.state.wholeEquation}   lastInput = {this.state.lastInput} lastResult = {this.state.lastResult}/>
+                                    <OperationButton operation='D' numberPressHandler={this.numberPress} currentExpression={this.state.currentExpression} wholeEquation={this.state.wholeEquation}   lastInput = {this.state.lastInput} lastResult = {this.state.lastResult}/>
                                 </div>
                                 <div className='row' style={{height: '18%', margin: '0px'}}>
                                     <NumberButton number='7' numberPressHandler={this.numberPress} currentExpression={this.state.currentExpression} />
