@@ -4,7 +4,7 @@
   "private": true,
   "dependencies": {
     "@babel/runtime": "^7.7.4",
-    "axios": "^0.19.0",
+    "axios": "^0.21.1",
     "axios-https-proxy-fix": "^0.17.1",
     "http-proxy-middleware": "^0.20.0",
     "materialize-css": "^1.0.0",
